@@ -1,0 +1,20 @@
+{
+  "editor.fontSize": 16,
+  "debug.console.fontSize": 15,
+  "terminal.integrated.fontSize": 15,
+  "carbon.fontSize": 15,
+  "files.associations": {
+    "*.wpy": "vue",
+    "*.cjson": "jsonc",
+    "*.wxss": "css",
+    "*.wxs": "javascript",
+    "*.html": "html",
+    "*.san": "san",
+    "*.har": "json",
+    "*.df": "dockerfile",
+    "unistd.h": "c",
+    "stdarg.h": "c",
+    "stdio.h": "c",
+    "time.h": "c"
+  }
+}
