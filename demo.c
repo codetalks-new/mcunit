@@ -184,13 +184,15 @@ void demo_clock_gettime()
          (double)t.tms_stime / clocks_per_ms);
 }
 
-typedef struct Step
+const char *format(const char *fmt, ...)
 {
-  // 步骤名称
-  char *name;
-  // 用时(单位秒)
-  long seconds;
-} Step;
+  char *buf = malloc(64);
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(buf, 64, fmt, args);
+  va_end(args);
+  return buf;
+}
 
 const char *colorize(const char *str, const char *color)
 {
@@ -208,52 +210,83 @@ const char *colorize(const char *str, const char *color)
 #define MAGENTA_BOLD "\033[35;1m"
 #define CYAN "\033[36m"
 
+typedef struct ColorPalette
+{
+  // 主色调
+  char *primary;
+  // 辅色
+  char *secondary;
+
+} ColorPalette;
+
+typedef struct Step
+{
+  // 步骤名称
+  char *name;
+  // 用时(单位秒)
+  long seconds;
+  // 当前状态
+  char *status;
+} Step;
+
+typedef struct Recipe
+{
+  // 食谱名称
+  char *name;
+  // 步骤列表
+  Step steps[10];
+  // 状态
+  char *status;
+  // 输出信息的主色调
+  ColorPalette colors;
+} Recipe;
+
 char *tea_egg_status = "无";
 char *coffee_status = "无";
+Recipe recipies[] = {
+    {.name = "煮茶叶蛋", .steps = {
+                             {.name = "洗鸡蛋", .seconds = 1},
+                             {.name = "大火煮", .seconds = 2},
+                             {.name = "小火煮", .seconds = 2},
+                             {.name = "冷水冲凉", .seconds = 2},
+                         },
+     .colors = {.primary = GREEN_BOLD, .secondary = CYAN}},
+    {.name = "煮咖啡", .steps = {
+                           {.name = "准备材料", .seconds = 3},
+                           {.name = "研磨咖啡豆", .seconds = 0},
+                           {.name = "过滤", .seconds = 1},
+                           {.name = "加水煮", .seconds = 2},
+                           {.name = "加糖和奶", .seconds = 1},
+                       },
+     .colors = {.primary = YELLOW_BOLD, .secondary = BLUE}},
+};
 
-// 煮茶叶蛋
-void *make_tea_egg(void *arg)
+void cook(Recipe recipe)
 {
-  const Step steps[] = {
-      {.name = "洗鸡蛋", .seconds = 1},
-      {.name = "大火煮", .seconds = 2},
-      {.name = "小火煮", .seconds = 2},
-      {.name = "冷水冲凉", .seconds = 2},
-  };
-  const char *label = colorize("[煮茶叶蛋]", GREEN);
-  for (int i = 0; i < 4; i++)
+  const ColorPalette colors = recipe.colors;
+  const char *label = colorize(format("[%s]", recipe.name), colors.primary);
+  for (int i = 0; recipe.steps[i].name; i++)
   {
-    Step step = steps[i];
+    Step step = recipe.steps[i];
     printf("%s [%d] %s 时间:%ld(秒)\n", label, i + 1,
-           colorize(step.name, CYAN), step.seconds);
+           colorize(step.name, colors.secondary), step.seconds);
     sleep(step.seconds);
   }
-  printf("\n%s\n\n", colorize("茶叶蛋煮好了!", GREEN_BOLD));
-  exit(EXIT_SUCCESS);
+  printf("\n%s\n\n", colorize(format("%s煮好了!", recipe.name), colors.primary));
+}
+
+// 煮茶叶蛋
+void *
+make_tea_egg(void *arg)
+{
+  cook(recipies[0]);
   return NULL;
 }
 
 // 煮咖啡
 void *make_coffee(void *arg)
 {
-  const Step steps[] = {
-      {.name = "准备材料", .seconds = 3},
-      {.name = "研磨咖啡豆", .seconds = 0},
-      {.name = "过滤", .seconds = 1},
-      {.name = "加水煮", .seconds = 2},
-      {.name = "加糖和奶", .seconds = 1},
-  };
-  const char *label = colorize("[做咖啡]", YELLOW);
-  for (int i = 0; i < 5; i++)
-  {
-    Step step = steps[i];
-    assert(step.seconds > 0);
-    printf("%s [%d] %s 时间:%ld(秒)\n", label, i + 1,
-           colorize(step.name, BLUE), step.seconds);
-    sleep(step.seconds);
-  }
-  printf("\n%s\n\n", colorize("咖啡制作完成!", YELLOW_BOLD));
-  exit(1);
+  cook(recipies[1]);
   return NULL;
 }
 
@@ -339,7 +372,8 @@ void demo_pthread_create()
   // new Thread((){}).start()
 }
 
-void demo_fork_stdio_buf(){
+void demo_fork_stdio_buf()
+{
   //【C语言实战】(7)Linux 多进程编程  - fork及缓冲区
   // by - 代码会说话
   // stdio stdio buf
@@ -354,5 +388,6 @@ void demo_fork_stdio_buf(){
 
 int main(int argc, char const *argv[])
 {
+  demo_pthread_create();
   return 0;
 }
