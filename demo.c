@@ -216,7 +216,7 @@ typedef struct Recipe {
 
 char *tea_egg_status = "无";
 char *coffee_status = "无";
-const char status_finish[] = "完成";
+const char *const status_finish = "完成";
 
 Recipe recipies[] = {
     {.name = "煮茶叶蛋",
@@ -240,47 +240,47 @@ Recipe recipies[] = {
      .colors = {.primary = YELLOW_BOLD, .secondary = BLUE}},
 };
 
-void cook(Recipe recipe) {
-  const ColorPalette colors = recipe.colors;
-  const char *label = colorize(format("[%s]", recipe.name), colors.primary);
-  for (int i = 0; recipe.steps[i].name; i++) {
-    Step step = recipe.steps[i];
+void cook(Recipe *recipe) {
+  const ColorPalette colors = recipe->colors;
+  const char *label = colorize(format("[%s]", recipe->name), colors.primary);
+  for (int i = 0; recipe->steps[i].name; i++) {
+    Step *step = &recipe->steps[i];
     printf("%s [%d] %s 时间:%ld(秒)\n", label, i + 1,
-           colorize(step.name, colors.secondary), step.seconds);
-    sleep(step.seconds);
-    step.status = "完成";
+           colorize(step->name, colors.secondary), step->seconds);
+    sleep(step->seconds);
+    step->status = "完成";
   }
-  recipe.status = "完成";
+  recipe->status = "完成";
   printf("\n%s\n\n",
-         colorize(format("%s煮好了!", recipe.name), colors.primary));
+         colorize(format("%s煮好了!", recipe->name), colors.primary));
   fflush(stdout);
 }
-void check_recipe(Recipe recipe) {
-  printf("正在检查 [%s] 的完成情况!\n", recipe.name);
+void check_recipe(Recipe *recipe) {
+  printf("正在检查 [%s] 的完成情况!\n", recipe->name);
   int finish_cnt = 0;
   int step_cnt = 0;
-  for (int i = 0; recipe.steps[i].name; i++) {
+  for (int i = 0; recipe->steps[i].name; i++) {
     step_cnt += 1;
-    Step step = recipe.steps[i];
-    if (strcmp(step.name, status_finish) == 0) {
+    Step step = recipe->steps[i];
+    if (step.status && strcmp(step.status, status_finish) == 0) {
       finish_cnt += 1;
     }
     printf("[%s] %s\n", step.name, step.status);
   }
-  printf("[%s]检查报告:\n", recipe.name);
-  printf("  整体完成状况:[%s], 共:[%d步], 完成:[%d步]\n", recipe.status,
+  printf("[%s]检查报告:\n", recipe->name);
+  printf("  整体完成状况:[%s], 共:[%d步], 完成:[%d步]\n", recipe->status,
          step_cnt, finish_cnt);
 }
 
 // 煮茶叶蛋
 void *make_tea_egg(void *arg) {
-  cook(recipies[0]);
+  cook(&recipies[0]);
   return NULL;
 }
 
 // 煮咖啡
 void *make_coffee(void *arg) {
-  cook(recipies[1]);
+  cook(&recipies[1]);
   return NULL;
 }
 
@@ -348,7 +348,8 @@ void demo_pthread_create() {
   // sleep(10);
   printf("\n\n%s\n", colorize("咖啡和茶叶蛋都做好了,请慢用!", MAGENTA_BOLD));
 
-  // new Thread((){}).start()
+  check_recipe(&recipies[0]);
+  check_recipe(&recipies[1]);
 }
 
 void demo_fork_stdio_buf() {
@@ -363,19 +364,22 @@ void demo_fork_stdio_buf() {
   fork();
   //
 }
-
-int main(int argc, char const *argv[]) {
+void demo_fork_2() {
   if (fork() == 0) {
     make_tea_egg(NULL);
-    return 0;
+    return;
   }
   if (fork() == 0) {
     make_coffee(NULL);
-    return 0;
+    return;
   }
   while (wait(NULL) > 0)
     ;
-  check_recipe(recipies[0]);
-  check_recipe(recipies[1]);
+  check_recipe(&recipies[0]);
+  check_recipe(&recipies[1]);
+}
+
+int main(int argc, char const *argv[]) {
+  demo_pthread_create();
   return 0;
 }
