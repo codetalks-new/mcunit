@@ -216,6 +216,8 @@ typedef struct Recipe {
 
 char *tea_egg_status = "无";
 char *coffee_status = "无";
+const char status_finish[] = "完成";
+
 Recipe recipies[] = {
     {.name = "煮茶叶蛋",
      .steps =
@@ -252,6 +254,22 @@ void cook(Recipe recipe) {
   printf("\n%s\n\n",
          colorize(format("%s煮好了!", recipe.name), colors.primary));
   fflush(stdout);
+}
+void check_recipe(Recipe recipe) {
+  printf("正在检查 [%s] 的完成情况!\n", recipe.name);
+  int finish_cnt = 0;
+  int step_cnt = 0;
+  for (int i = 0; recipe.steps[i].name; i++) {
+    step_cnt += 1;
+    Step step = recipe.steps[i];
+    if (strcmp(step.name, status_finish) == 0) {
+      finish_cnt += 1;
+    }
+    printf("[%s] %s\n", step.name, step.status);
+  }
+  printf("[%s]检查报告:\n", recipe.name);
+  printf("  整体完成状况:[%s], 共:[%d步], 完成:[%d步]\n", recipe.status,
+         step_cnt, finish_cnt);
 }
 
 // 煮茶叶蛋
@@ -355,7 +373,9 @@ int main(int argc, char const *argv[]) {
     make_coffee(NULL);
     return 0;
   }
-  wait(NULL);
-  printf("\n\n%s\n", colorize("咖啡和茶叶蛋都做好了,请慢用!", MAGENTA_BOLD));
+  while (wait(NULL) > 0)
+    ;
+  check_recipe(recipies[0]);
+  check_recipe(recipies[1]);
   return 0;
 }
