@@ -7,6 +7,7 @@
 #include <stdlib.h>    /* For exit */
 #include <string.h>    /* For strsignal */
 #include <sys/conf.h>  /* For sysconf */
+#include <sys/mman.h>  /* For mmap */
 #include <sys/time.h>  /* For getimeofday */
 #include <sys/times.h> /* For times */
 #include <sys/wait.h>  /* For waitpid */
@@ -365,21 +366,33 @@ void demo_fork_stdio_buf() {
   //
 }
 void demo_fork_2() {
+  const int pageSize = 4096;
+  const int recipe_size = sizeof(Recipe);
+  void *shared_memory_addr = mmap(NULL, pageSize * 1, PROT_READ | PROT_WRITE,
+                                  MAP_ANONYMOUS | MAP_SHARED, 0, 0);
+
+  memcpy(shared_memory_addr, recipies, sizeof(recipies));
+  Recipe *shared_recipies = shared_memory_addr;
   if (fork() == 0) {
-    cook(&recipies[0]);
+    cook(&shared_recipies[0]);
     return;
   }
   if (fork() == 0) {
-    cook(&recipies[1]);
+    cook(&shared_recipies[1]);
     return;
   }
   while (wait(NULL) > 0)
     ;
-  check_recipe(&recipies[0]);
-  check_recipe(&recipies[1]);
+  check_recipe(&shared_recipies[0]);
+  check_recipe(&shared_recipies[1]);
 }
 
 int main(int argc, char const *argv[]) {
+  int page_size = sysconf(_SC_PAGE_SIZE);
+  printf("page_size=%d\n", page_size);
+  printf("sizeof(Recipe) = %d\n", sizeof(Recipe));
+  printf("sizeof(recipies) = %d\n", sizeof(recipies));
   demo_fork_2();
+
   return 0;
 }
