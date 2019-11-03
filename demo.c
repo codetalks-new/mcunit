@@ -30,52 +30,40 @@
  *  \033[38;5;2m
  *  \033[38;2;203:36:49m
  */
-void demo_ansi_colors()
-{
+void demo_ansi_colors() {
   printf("\033[38;2;203:36:49m Closed \033[0m\n");
-  for (int i = 0; i < 8; i++)
-  {
+  for (int i = 0; i < 8; i++) {
     const int code = 40 + i;
     printf("%d \033[%d;1m color \033[0m\n", code, code);
   }
-  for (int i = 0; i < 24; i++)
-  {
-    const int code = 232 + i; // 255
+  for (int i = 0; i < 24; i++) {
+    const int code = 232 + i;  // 255
     printf("%d \033[48;5;%dm color \033[0m\n", code, code);
   }
 }
 
-char *fmt_time(double ms)
-{
+char *fmt_time(double ms) {
   // 执行时间: 100ms
   const char *color;
-  if (ms < 100)
-  {
+  if (ms < 100) {
     color = "green";
-  }
-  else if (ms < 200)
-  {
+  } else if (ms < 200) {
     color = "yellow";
-  }
-  else
-  {
+  } else {
     color = "red";
   }
 
   const char *reset = "reset";
   static char buf[64];
-  snprintf(buf, sizeof(buf), "%s执行时间:%.4lfms%s", color, ms,
-           reset);
+  snprintf(buf, sizeof(buf), "%s执行时间:%.4lfms%s", color, ms, reset);
   return buf;
 }
 
-void log_info(char *msg)
-{
+void log_info(char *msg) {
   fprintf(stdout, "[INFO] %s\n", msg);
 }
 
-void log_perror(char *fmt, ...)
-{
+void log_perror(char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   char buf[256];
@@ -84,24 +72,21 @@ void log_perror(char *fmt, ...)
   perror(buf);
 }
 
-void demo_printf()
-{
+void demo_printf() {
   // C语言实战(2)-强大的 printf 家族 [自制单元测试库系列] -by
   // 代码会说话
   printf("Hello World\n");
   fprintf(stderr, "Hello World\n");
   fprintf(stdout, "Hello World\n");
   FILE *logfile = fopen("404.log", "r");
-  if (logfile == NULL)
-  {
+  if (logfile == NULL) {
     log_perror("无法打开 %s", "404.log");
   }
 
   log_info(fmt_time(300));
 }
 
-void demo_docs()
-{
+void demo_docs() {
   // glibc
   // https://sourceware.org/git/?p=glibc.git;a=blob;f=sysdeps/posix/time.c;h=52bc14acafe87d111918f198cceacd47f5ab8325;hb=4e42b5b8f89f0e288e68be7ad70f9525aebc2cff
   // times 每次调用耗时: 8ms 左右
@@ -112,26 +97,22 @@ void demo_docs()
   // 也就是每72分钟就会打转一次.
 }
 
-void demo_time()
-{
+void demo_time() {
   time_t start = time(NULL);
   long i = 0;
-  while (i < 10e6)
-  {
+  while (i < 10e6) {
     i++;
   }
   time_t end = time(NULL);
   printf("执行时间:%lds\n", end - start);
 }
 
-void demo_gettimeofday()
-{
+void demo_gettimeofday() {
   struct timeval start;
   struct timeval end;
   gettimeofday(&start, NULL);
   long i = 0;
-  while (i < 10e6)
-  {
+  while (i < 10e6) {
     i++;
   }
   // epoch timestamp 1970-01-01 00:00:00 +0000 (UTC)
@@ -142,15 +123,13 @@ void demo_gettimeofday()
   printf("执行时间:%ldms\n", end_ms - start_ms);
 }
 
-void demo_clock()
-{
-  clock_t ticks = clock();                      // 72 min
-  double secs = (double)ticks / CLOCKS_PER_SEC; // us
+void demo_clock() {
+  clock_t ticks = clock();                       // 72 min
+  double secs = (double)ticks / CLOCKS_PER_SEC;  // us
   printf("执行时间:%.4lfms\n", secs * 1000);
 }
 
-void demo_clock_gettime()
-{
+void demo_clock_gettime() {
   //【C语言实战】(3)如何正确测量程序的运行时间? [自制单元测试库系列] -
   // by 代码会说话
   struct tms t;
@@ -158,9 +137,8 @@ void demo_clock_gettime()
   struct timespec end;
   struct timeval tv;
   long i = 0;
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start); // 10.12 10.14
-  while (i < 10e6)
-  {
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);  // 10.12 10.14
+  while (i < 10e6) {
     i++;
     // times(&t);
     // gettimeofday(&tv, NULL); // vdto common_page
@@ -184,8 +162,7 @@ void demo_clock_gettime()
          (double)t.tms_stime / clocks_per_ms);
 }
 
-const char *format(const char *fmt, ...)
-{
+const char *format(const char *fmt, ...) {
   char *buf = malloc(64);
   va_list args;
   va_start(args, fmt);
@@ -194,8 +171,7 @@ const char *format(const char *fmt, ...)
   return buf;
 }
 
-const char *colorize(const char *str, const char *color)
-{
+const char *colorize(const char *str, const char *color) {
   char *buf;
   asprintf(&buf, "%s%s%s", color, str, "\033[0m");
   return buf;
@@ -210,8 +186,7 @@ const char *colorize(const char *str, const char *color)
 #define MAGENTA_BOLD "\033[35;1m"
 #define CYAN "\033[36m"
 
-typedef struct ColorPalette
-{
+typedef struct ColorPalette {
   // 主色调
   char *primary;
   // 辅色
@@ -219,8 +194,7 @@ typedef struct ColorPalette
 
 } ColorPalette;
 
-typedef struct Step
-{
+typedef struct Step {
   // 步骤名称
   char *name;
   // 用时(单位秒)
@@ -229,8 +203,7 @@ typedef struct Step
   char *status;
 } Step;
 
-typedef struct Recipe
-{
+typedef struct Recipe {
   // 食谱名称
   char *name;
   // 步骤列表
@@ -244,103 +217,93 @@ typedef struct Recipe
 char *tea_egg_status = "无";
 char *coffee_status = "无";
 Recipe recipies[] = {
-    {.name = "煮茶叶蛋", .steps = {
-                             {.name = "洗鸡蛋", .seconds = 1},
-                             {.name = "大火煮", .seconds = 2},
-                             {.name = "小火煮", .seconds = 2},
-                             {.name = "冷水冲凉", .seconds = 2},
-                         },
+    {.name = "煮茶叶蛋",
+     .steps =
+         {
+             {.name = "洗鸡蛋", .seconds = 1},
+             {.name = "大火煮", .seconds = 2},
+             {.name = "小火煮", .seconds = 2},
+             {.name = "冷水冲凉", .seconds = 2},
+         },
      .colors = {.primary = GREEN_BOLD, .secondary = CYAN}},
-    {.name = "煮咖啡", .steps = {
-                           {.name = "准备材料", .seconds = 3},
-                           {.name = "研磨咖啡豆", .seconds = 0},
-                           {.name = "过滤", .seconds = 1},
-                           {.name = "加水煮", .seconds = 2},
-                           {.name = "加糖和奶", .seconds = 1},
-                       },
+    {.name = "煮咖啡",
+     .steps =
+         {
+             {.name = "准备材料", .seconds = 3},
+             {.name = "研磨咖啡豆", .seconds = 0},
+             {.name = "过滤", .seconds = 1},
+             {.name = "加水煮", .seconds = 2},
+             {.name = "加糖和奶", .seconds = 1},
+         },
      .colors = {.primary = YELLOW_BOLD, .secondary = BLUE}},
 };
 
-void cook(Recipe recipe)
-{
+void cook(Recipe recipe) {
   const ColorPalette colors = recipe.colors;
   const char *label = colorize(format("[%s]", recipe.name), colors.primary);
-  for (int i = 0; recipe.steps[i].name; i++)
-  {
+  for (int i = 0; recipe.steps[i].name; i++) {
     Step step = recipe.steps[i];
     printf("%s [%d] %s 时间:%ld(秒)\n", label, i + 1,
            colorize(step.name, colors.secondary), step.seconds);
     sleep(step.seconds);
+    step.status = "完成";
   }
-  printf("\n%s\n\n", colorize(format("%s煮好了!", recipe.name), colors.primary));
+  recipe.status = "完成";
+  printf("\n%s\n\n",
+         colorize(format("%s煮好了!", recipe.name), colors.primary));
+  fflush(stdout);
 }
 
 // 煮茶叶蛋
-void *
-make_tea_egg(void *arg)
-{
+void *make_tea_egg(void *arg) {
   cook(recipies[0]);
   return NULL;
 }
 
 // 煮咖啡
-void *make_coffee(void *arg)
-{
+void *make_coffee(void *arg) {
   cook(recipies[1]);
   return NULL;
 }
 
-const char *format_exit_code(int exit_code)
-{
+const char *format_exit_code(int exit_code) {
   char *buf;
-  if (WIFEXITED(exit_code))
-  {
+  if (WIFEXITED(exit_code)) {
     // 子进程正常退出
     int status_code = WEXITSTATUS(exit_code);
-    switch (status_code)
-    {
-    case EXIT_SUCCESS:
-      return "完成";
-    case EXIT_FAILURE:
-      return "失败";
-    default:
-      asprintf(&buf, "未知退出状态码:[%d]", status_code);
-      return buf;
+    switch (status_code) {
+      case EXIT_SUCCESS:
+        return "完成";
+      case EXIT_FAILURE:
+        return "失败";
+      default:
+        asprintf(&buf, "未知退出状态码:[%d]", status_code);
+        return buf;
     }
-  }
-  else if (WIFSIGNALED(exit_code))
-  {
+  } else if (WIFSIGNALED(exit_code)) {
     int signal_code = WTERMSIG(exit_code);
     const char *signame = strsignal(signal_code);
     asprintf(&buf, "子进程因为信号中断退出:[%s]", signame);
     return buf;
-  }
-  else
-  {
+  } else {
     asprintf(&buf, "子进程异常退出:[%d]", exit_code);
     return buf;
   }
 }
 
-void demo_fork()
-{
+void demo_fork() {
   //【C语言实战】(6)Linux/Unix 进程通信-获得子进程退出状态.
   //[自制单元测试库系列]
   // by - 代码会说话
   pid_t tea_worker_id = fork();
-  if (tea_worker_id == 0)
-  {
+  if (tea_worker_id == 0) {
     make_tea_egg(NULL);
   }
-  if (tea_worker_id > 0)
-  {
+  if (tea_worker_id > 0) {
     pid_t coffee_worker_id = fork();
-    if (coffee_worker_id == 0)
-    {
+    if (coffee_worker_id == 0) {
       make_coffee(NULL);
-    }
-    else
-    {
+    } else {
       int tea_status;
       int coffee_status;
       waitpid(tea_worker_id, &tea_status, 0);
@@ -352,8 +315,7 @@ void demo_fork()
   // 父进程退出 ,子进程还在运行, 孤儿进程, 停止, 僵尸进程, init
 }
 
-void demo_pthread_create()
-{
+void demo_pthread_create() {
   //【C语言实战】(5) 创建多线程-及与进程比较崩溃 **隔离性**
   //[自制单元测试库系列]
   // POSIX  NPTL  //clone do_fork
@@ -366,14 +328,12 @@ void demo_pthread_create()
   pthread_join(tea_worker_id, NULL);
   pthread_join(coffee_worker_id, NULL);
   // sleep(10);
-  printf("\n\n%s\n",
-         colorize("咖啡和茶叶蛋都做好了,请慢用!", MAGENTA_BOLD));
+  printf("\n\n%s\n", colorize("咖啡和茶叶蛋都做好了,请慢用!", MAGENTA_BOLD));
 
   // new Thread((){}).start()
 }
 
-void demo_fork_stdio_buf()
-{
+void demo_fork_stdio_buf() {
   //【C语言实战】(7)Linux 多进程编程  - fork及缓冲区
   // by - 代码会说话
   // stdio stdio buf
@@ -386,8 +346,16 @@ void demo_fork_stdio_buf()
   //
 }
 
-int main(int argc, char const *argv[])
-{
-  demo_pthread_create();
+int main(int argc, char const *argv[]) {
+  if (fork() == 0) {
+    make_tea_egg(NULL);
+    return 0;
+  }
+  if (fork() == 0) {
+    make_coffee(NULL);
+    return 0;
+  }
+  wait(NULL);
+  printf("\n\n%s\n", colorize("咖啡和茶叶蛋都做好了,请慢用!", MAGENTA_BOLD));
   return 0;
 }
