@@ -366,11 +366,11 @@ void demo_fork_stdio_buf() {
 }
 void demo_fork_2() {
   if (fork() == 0) {
-    make_tea_egg(NULL);
+    cook(&recipies[0]);
     return;
   }
   if (fork() == 0) {
-    make_coffee(NULL);
+    cook(&recipies[1]);
     return;
   }
   while (wait(NULL) > 0)
@@ -380,6 +380,6 @@ void demo_fork_2() {
 }
 
 int main(int argc, char const *argv[]) {
-  demo_pthread_create();
+  demo_fork_2();
   return 0;
 }
