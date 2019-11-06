@@ -3,6 +3,7 @@
 #include <pthread.h> /* For thread */
 #include <signal.h>  /* */
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>     /*For printf asprintf*/
 #include <stdlib.h>    /* For exit */
 #include <string.h>    /* For strsignal */
@@ -365,11 +366,47 @@ void demo_fork_stdio_buf() {
   fork();
   //
 }
+
+typedef struct MapOpts {
+  // 是否私有,默认共享
+  bool private;
+  // 是否是匿名,默认为文件映射
+  bool anonymous;
+  // 默认可读写
+  bool read_only;
+  // 映射大小,内存页数
+  int pages;
+  int fd;
+  int offset;
+} MapOpts;
+
+void *create_mmap(MapOpts opts) {
+  const long pageSize = sysconf(_SC_PAGE_SIZE);
+  int prot = PROT_READ;
+  if (!opts.read_only) {
+    prot |= PROT_WRITE;
+  }
+  int flags = opts.private ? MAP_PRIVATE : MAP_SHARED;
+  int fd = opts.fd;
+  if (opts.anonymous) {
+    flags |= MAP_ANONYMOUS;
+    fd = -1;
+  }
+  void *hintAddr = NULL;
+  const pages = opts.pages ? opts.pages : 1;
+  return mmap(hintAddr, pageSize * opts.pages, prot, flags, fd, opts.offset);
+}
+
+void *create_shared_anonymous_mmap() {
+  MapOpts opts;
+  opts.anonymous = true;
+  return create_mmap(opts);
+}
+
 void demo_fork_2() {
-  const int pageSize = 4096;
+  // [Linux编程实战] (8) 杂谈: 代码与注释,函数与传参 及如何更好的学好系统编程
   const int recipe_size = sizeof(Recipe);
-  void *shared_memory_addr = mmap(NULL, pageSize * 1, PROT_READ | PROT_WRITE,
-                                  MAP_ANONYMOUS | MAP_SHARED, 0, 0);
+  void *shared_memory_addr = create_shared_anonymous_mmap();
 
   memcpy(shared_memory_addr, recipies, sizeof(recipies));
   Recipe *shared_recipies = shared_memory_addr;
