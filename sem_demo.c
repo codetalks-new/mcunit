@@ -16,50 +16,60 @@
 #include <unistd.h>    /* For sleep sysconf */
 #include "color.h"     /* For colorize and color constants */
 #include "mmap_x.h"    /* For mmap utils */
-static sem_t* sem_A;
-static sem_t* sem_B;
-static sem_t* sem_C;
-static sem_t* sem_D;
-static sem_t* sem_E1;
-static sem_t* sem_E2;
+
+sem_t* sem_A;
+sem_t* sem_B;
+sem_t* sem_C;
+sem_t* sem_D;
+sem_t* sem_E1;
+sem_t* sem_E2;
+
+void P(sem_t* sem) {
+  // 尝试减将信号量的值减1,如果信号量值为0则阻塞
+  sem_wait(sem);
+}
+
+void V(sem_t* sem) {
+  sem_post(sem);
+}
 
 void task_A() {
-  sem_wait(sem_A);
+  P(sem_A);
   color_printf(RED, "任务A开始执行\n");
   int seconds = rand() % 5 + 1;
   sleep(seconds);
   color_printf(RED_BOLD, "任务A已经完成\n");
-  sem_post(sem_B);
+  V(sem_B);
 }
 void task_B() {
-  sem_wait(sem_B);
+  P(sem_B);
   color_printf(GREEN, "任务B开始执行\n");
   int seconds = rand() % 5 + 1;
   sleep(seconds);
   color_printf(GREEN_BOLD, "任务B已经完成\n");
-  sem_post(sem_C);
-  sem_post(sem_D);
+  V(sem_C);
+  V(sem_D);
 }
 
 void task_C() {
-  sem_wait(sem_C);
+  P(sem_C);
   color_printf(BLUE, "任务C开始执行\n");
   int seconds = rand() % 5 + 1;
   sleep(seconds);
   color_printf(BLUE_BOLD, "任务C已经完成\n");
-  sem_post(sem_E1);
+  V(sem_E1);
 }
 void task_D() {
-  sem_wait(sem_D);
+  P(sem_D);
   color_printf(YELLOW, "任务D开始执行\n");
   int seconds = rand() % 5 + 1;
   sleep(seconds);
   color_printf(YELLOW_BOLD, "任务D已经完成\n");
-  sem_post(sem_E2);
+  V(sem_E2);
 }
 void task_E() {
-  sem_wait(sem_E1);
-  sem_wait(sem_E2);
+  P(sem_E1);
+  P(sem_E2);
   color_printf(MAGENTA, "任务E开始执行\n");
   int seconds = rand() % 5 + 1;
   sleep(seconds);
@@ -73,13 +83,18 @@ void task_E() {
  *            -->[D] -->⬈
  *
  */
+
 int main(int argc, char const* argv[]) {
   // sem_wait 等需要 `-pthread` 连接选项
   //  clang -pthread -std=gnu11 -o bin/demo sem_demo.c
-  MapOpts mapOpts;
-  mapOpts.anonymous = true;
-  mapOpts.pages = 1;
-  void* addr = create_mmap(mapOpts);
+  // [Linux编程实战](10) 如何控制多进程执行顺序与依赖  - 使用 Posix PV信号量
+  // Dijkstra(迪杰斯特拉)(1930-2002) 荷兰人  semaphore(信号量)  / ˈseməfɔ:(r) /
+  // Proberen(测试,试一下), Verhogen (增加)
+
+  MapOpts opts;
+  opts.anonymous = true;
+  opts.pages = 1;  // 4096
+  void* addr = create_mmap(opts);
   sem_t* sems = (sem_t*)addr;
   sem_A = &sems[0];
   sem_B = &sems[1];
@@ -87,14 +102,10 @@ int main(int argc, char const* argv[]) {
   sem_D = &sems[3];
   sem_E1 = &sems[4];
   sem_E2 = &sems[5];
-  const int pshared = 1;  // 标志在进程间共享
-  const int initSemValue = 0;
+  const int pshared = 1;
+  const int semInitValue = 0;
   for (int i = 0; i < 6; i++) {
-    int res = sem_init(&sems[i], pshared, initSemValue);
-    if (res == -1) {
-      perror("failed to init sem_t");
-      return 0;
-    }
+    sem_init(&sems[i], pshared, semInitValue);
   }
 
   if (fork() == 0) {
@@ -117,7 +128,8 @@ int main(int argc, char const* argv[]) {
     task_E();
     return 0;
   }
-  sem_post(sem_A);
+  V(sem_A);
+
   while (wait(NULL) > 0) {
     ;
   }
