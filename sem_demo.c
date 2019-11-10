@@ -1,21 +1,19 @@
+#define _GNU_SOURCE 1  /*For asprintf */
 #include <assert.h>    /* For assert */
 #include <fcntl.h>     /* For O_* constants */
 #include <pthread.h>   /* For thread */
 #include <semaphore.h> /* For sem_* */
-#include <signal.h>    /* */
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>     /*For printf asprintf*/
 #include <stdlib.h>    /* For exit */
 #include <string.h>    /* For strsignal */
-#include <sys/conf.h>  /* For sysconf */
 #include <sys/mman.h>  /* For mmap */
 #include <sys/stat.h>  /* For mode constants */
 #include <sys/time.h>  /* For getimeofday */
 #include <sys/times.h> /* For times */
 #include <sys/wait.h>  /* For waitpid */
 #include <time.h>      /* For clock,time,clock_gettime*/
-#include <unistd.h>    /* For sleep */
+#include <unistd.h>    /* For sleep sysconf */
 #include "color.h"     /* For colorize and color constants */
 #include "mmap_x.h"    /* For mmap utils */
 static sem_t* sem_A;
@@ -76,7 +74,8 @@ void task_E() {
  *
  */
 int main(int argc, char const* argv[]) {
-  //
+  // sem_wait 等需要 `-pthread` 连接选项
+  //  clang -pthread -std=gnu11 -o bin/demo sem_demo.c
   MapOpts mapOpts;
   mapOpts.anonymous = true;
   mapOpts.pages = 1;
@@ -92,8 +91,9 @@ int main(int argc, char const* argv[]) {
   const int initSemValue = 0;
   for (int i = 0; i < 6; i++) {
     int res = sem_init(&sems[i], pshared, initSemValue);
-    if (res == SEM_FAILED) {
-      perror("failed to create sem_t");
+    if (res == -1) {
+      perror("failed to init sem_t");
+      return 0;
     }
   }
 
@@ -117,6 +117,7 @@ int main(int argc, char const* argv[]) {
     task_E();
     return 0;
   }
+  sem_post(sem_A);
   while (wait(NULL) > 0) {
     ;
   }
