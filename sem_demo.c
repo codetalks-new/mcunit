@@ -14,8 +14,9 @@
 #include <sys/wait.h>  /* For waitpid */
 #include <time.h>      /* For clock,time,clock_gettime*/
 #include <unistd.h>    /* For sleep sysconf */
-#include "color.h"     /* For colorize and color constants */
-#include "mmap_x.h"    /* For mmap utils */
+
+#include "color.h"  /* For colorize and color constants */
+#include "mmap_x.h" /* For mmap utils */
 
 sem_t* sem_A;
 sem_t* sem_B;
@@ -105,7 +106,11 @@ int main(int argc, char const* argv[]) {
   const int pshared = 1;
   const int semInitValue = 0;
   for (int i = 0; i < 6; i++) {
-    sem_init(&sems[i], pshared, semInitValue);
+    int res = sem_init(&sems[i], pshared, semInitValue);
+    if (res == -1) {
+      perror("failed to sem_init");
+      return -1;
+    }
   }
 
   if (fork() == 0) {

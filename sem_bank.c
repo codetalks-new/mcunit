@@ -46,9 +46,7 @@ const char* fund_type_to_text(FundType type) {
 }
 
 int bank_init() {
-  MapOpts mapOpts;
-  mapOpts.anonymous = true;
-  mapOpts.pages = 1;
+  MapOpts mapOpts = {.anonymous = true, .pages = 1};
   void* addr = create_mmap(mapOpts);
   sem_t* sems = (sem_t*)addr;
   bank_funds[0] = &sems[0];
@@ -101,15 +99,20 @@ int bank_repay(FundType type, unsigned amount) {
   return 0;
 }
 
-// static const char* const colors[] = {RED, GREEN, BLUE, YELLOW, MAGENTA,
-// CYAN}; static const char* const bold_colors[] = {RED_BOLD,    GREEN_BOLD,
+static const char* const colors[] = {RED, GREEN, BLUE, YELLOW, MAGENTA, CYAN};
+// static const char* const bold_colors[] = {
+// RED_BOLD, GREEN_BOLD,
 // BLUE_BOLD,
-//                                           YELLOW_BOLD, MAGENTA_BOLD, CYAN};
+//                                           YELLOW_BOLD, MAGENTA_BOLD,
+//                                           CYAN};
 void thinking() {
   int seconds = rand() % 5 + 1;
   sleep(seconds);
 }
 int make_life(int no) {
+  srand(time(NULL));
+  const char* color = colors[no - 1];
+  printf("%s",color);
   LOG_INFO("[编号%d]开始思考人生", no);
   thinking();
   unsigned my_fund[FUND_TYPE_COUNT] = {0};
@@ -147,7 +150,7 @@ int main(int argc, char const* argv[]) {
   if (CHECK_FAIL(res)) {
     return -1;
   }
-  const int max_people = rand() % 8 + 2;
+  const int max_people = rand() % 5 + 2;
   pid_t pid = -1;
   for (int i = 1; i < (max_people + 1); i++) {
     pid = fork();
