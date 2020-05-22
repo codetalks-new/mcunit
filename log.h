@@ -5,17 +5,18 @@
 #include <sys/types.h>
 #include <time.h>
 
+#define LOG_TIME_LEN (64)
+
 /// 用于生成适合日志输出显示的时间
 char *log_time() {
-  const u_int8_t TIME_LEN = 64;
-  static char buf[TIME_LEN] = {0};
-  bzero(buf, TIME_LEN);
+  static char buf[LOG_TIME_LEN] = {0};
+  bzero(buf, LOG_TIME_LEN);
   struct timeval tv;
   gettimeofday(&tv, NULL);
   struct tm *tm = localtime(&tv.tv_sec);
   int millis = tv.tv_usec / 1000;
-  size_t pos = strftime(buf, TIME_LEN, "%F %T", tm);
-  snprintf(&buf[pos], TIME_LEN - pos, ".%03d", millis);
+  size_t pos = strftime(buf, LOG_TIME_LEN, "%F %T", tm);
+  snprintf(&buf[pos], LOG_TIME_LEN - pos, ".%03d", millis);
   return buf;
 }
 
@@ -44,9 +45,10 @@ char *log_time() {
       return -1;     \
     }                \
   })
-#define GUARD_NULL(ret)      \
-  ({                       \
-    if (ret == NULL) {     \
-      return -1;           \
-    }                      \
-  }
+
+#define GUARD_NULL(ret) \
+  ({                    \
+    if (ret == NULL) {  \
+      return -1;        \
+    }                   \
+  })

@@ -30,7 +30,7 @@ void *create_mmap(MapOpts opts) {
   }
   void *hintAddr = NULL;
   const int pages = opts.pages ? opts.pages : 1;
-  return mmap(hintAddr, pageSize * opts.pages, prot, flags, fd, opts.offset);
+  return mmap(hintAddr, pageSize * pages, prot, flags, fd, opts.offset);
 }
 
 void *create_shared_anonymous_mmap(int pages) {
