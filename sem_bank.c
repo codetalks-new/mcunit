@@ -99,27 +99,34 @@ int bank_repay(FundType type, unsigned amount) {
   return 0;
 }
 
-static const char* const colors[] = {RED, GREEN, BLUE, YELLOW, MAGENTA, CYAN};
-// static const char* const bold_colors[] = {
-// RED_BOLD, GREEN_BOLD,
-// BLUE_BOLD,
-//                                           YELLOW_BOLD, MAGENTA_BOLD,
-//                                           CYAN};
+static const char* const colors[] = {
+    RED,      GREEN,      BLUE,      YELLOW,      MAGENTA,      CYAN,
+    RED_BOLD, GREEN_BOLD, BLUE_BOLD, YELLOW_BOLD, MAGENTA_BOLD,
+};
+static const unsigned COLORS_COUNT = sizeof(colors) / sizeof(char*);
 void thinking() {
   int seconds = rand() % 5 + 1;
   sleep(seconds);
 }
+static int make_loan_count = 1;
 int make_life(int no) {
-  srand(time(NULL));
-  const char* color = colors[no - 1];
-  LOG_INFO("%s", colorize(color, "[编号%d]开始思考人生", no));
   thinking();
+  srand(time(NULL));
+  const char* color = colors[(no - 1) % COLORS_COUNT];
+  if (make_loan_count < 2) {
+    LOG_INFO("%s", colorize(color, "[编号%d]进入游戏", no));
+  } else {
+    LOG_INFO("%s",
+             colorize(color, "[编号%d]开始第%d次游戏", no, make_loan_count));
+  }
+  make_loan_count += 1;
   unsigned my_fund[FUND_TYPE_COUNT] = {0};
   for (int i = 0; i < FUND_TYPE_COUNT; i++) {
     FundType type = ALL_FUND_TYPES[i];
     const char* type_text = fund_type_to_text(type);
-    unsigned amount = rand() % current_balance_of_type(type) + 1;
-    // LOG_INFO("%s", colorize(color, "[编号%d]准备借 %s", no, type_text));
+    unsigned amount = rand() % MAX_FUND + 1;
+    LOG_INFO("%s",
+             colorize(color, "[编号%d]准备借 %d 元%s", no, amount, type_text));
     int res = bank_loan(type, amount);
     if (CHECK_FAIL(res)) {
       return -1;
@@ -138,7 +145,7 @@ int make_life(int no) {
     LOG_INFO("%s",
              colorize(color, "[编号%d]还%d 元 %s", no, amount, type_text));
   }
-  unsigned luck = (rand() % 10) > 5;
+  unsigned luck = (rand() % 10) > 7;
   if (luck) {
     LOG_INFO("%s", colorize(color, "[编号%d] 退出游戏", no));
     return 0;
