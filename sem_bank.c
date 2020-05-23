@@ -112,20 +112,20 @@ void thinking() {
 int make_life(int no) {
   srand(time(NULL));
   const char* color = colors[no - 1];
-  printf("%s",color);
-  LOG_INFO("[编号%d]开始思考人生", no);
+  LOG_INFO("%s", colorize(color, "[编号%d]开始思考人生", no));
   thinking();
   unsigned my_fund[FUND_TYPE_COUNT] = {0};
   for (int i = 0; i < FUND_TYPE_COUNT; i++) {
     FundType type = ALL_FUND_TYPES[i];
     const char* type_text = fund_type_to_text(type);
     unsigned amount = rand() % current_balance_of_type(type) + 1;
-    LOG_INFO("[编号%d]准备借 %d 元 %s", no, amount, type_text);
+    // LOG_INFO("%s", colorize(color, "[编号%d]准备借 %s", no, type_text));
     int res = bank_loan(type, amount);
     if (CHECK_FAIL(res)) {
       return -1;
     }
-    LOG_INFO("[编号%d]借到了 %d 元 %s", no, amount, type_text);
+    LOG_INFO("%s",
+             colorize(color, "[编号%d]借到了 %d 元 %s", no, amount, type_text));
     GUARD(amount);
     my_fund[i] = amount;
   }
@@ -135,12 +135,15 @@ int make_life(int no) {
     FundType type = ALL_FUND_TYPES[i];
     const char* type_text = fund_type_to_text(type);
     bank_repay(type, amount);
-    LOG_INFO("[编号%d]还%d 元 %s", no, amount, type_text);
+    LOG_INFO("%s",
+             colorize(color, "[编号%d]还%d 元 %s", no, amount, type_text));
   }
   unsigned luck = (rand() % 10) > 5;
   if (luck) {
+    LOG_INFO("%s", colorize(color, "[编号%d] 退出游戏", no));
     return 0;
   } else {
+    LOG_INFO("%s", colorize(color, "[编号%d] 继续游戏", no));
     return make_life(no);
   }
 }
@@ -161,8 +164,10 @@ int main(int argc, char const* argv[]) {
       return -1;
     }
   }
-  while (wait(NULL) > 0) {
-    ;
-  }
+  res = -1;
+  do {
+    res = wait(NULL);
+    CHECK_FAIL(res);
+  } while (res > 0);
   return 0;
 }

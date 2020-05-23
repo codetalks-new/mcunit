@@ -4,9 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char *colorize(const char *str, const char *color) {
+const char *colorize(const char *color, const char *fmt, ...) {
+  char tmp_buf[256] = {0};
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(tmp_buf, 256, fmt, args);
+  va_end(args);
   char *buf;
-  asprintf(&buf, "%s%s%s", color, str, "\033[0m");
+  asprintf(&buf, "%s%s%s", color, tmp_buf, "\033[0m");
   return buf;
 }
 
